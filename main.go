@@ -48,6 +48,12 @@ func NewApp() *cli.App {
 			Flags:  cmd.DDNSFlags,
 			Action: cmd.DDNSAction,
 		},
+		{
+			Name:   "proxy",
+			Usage:  "socks5 proxy from fofa",
+			Flags:  cmd.ProxyFlags,
+			Action: cmd.ProxyAction,
+		},
 	}
 
 	app.Action = func(ctx *cli.Context) error {
