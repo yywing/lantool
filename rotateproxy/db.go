@@ -3,7 +3,7 @@ package rotateproxy
 import (
 	"fmt"
 
-	"gorm.io/driver/sqlite"
+	"github.com/yywing/sqlite"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
 )
