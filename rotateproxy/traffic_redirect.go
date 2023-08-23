@@ -18,15 +18,15 @@ const (
 )
 
 var (
-	largeBufferSize = 32 * 1024 // 32KB large buffer
+	largeBufferSize   = 32 * 1024 // 32KB large buffer
 	ErrNotSocks5Proxy = errors.New("this is not a socks proxy server")
 )
 
 type BaseConfig struct {
-	ListenAddr   string
-	IPRegionFlag int // 0: all 1: cannot bypass gfw 2: bypass gfw
-	Username string
-	Password string
+	ListenAddr     string
+	IPRegionFlag   int // 0: all 1: cannot bypass gfw 2: bypass gfw
+	Username       string
+	Password       string
 	SelectStrategy int // 0: random, 1: Select the one with the shortest timeout, 2: Select the two with the shortest timeout, ...
 }
 
@@ -45,7 +45,6 @@ type AuthPreProcessor struct {
 type NoAuthPreProcessor struct {
 	cfg BaseConfig
 }
-
 
 // DownstreamPreProcess auth for socks5 server(local)
 func (p *AuthPreProcessor) DownstreamPreProcess(conn net.Conn) (err error) {
@@ -145,7 +144,6 @@ func NewNoAuthPreProcessor(cfg BaseConfig) *NoAuthPreProcessor {
 	return &NoAuthPreProcessor{cfg: cfg}
 }
 
-
 type RedirectClient struct {
 	config *BaseConfig
 
@@ -207,19 +205,18 @@ func (c *RedirectClient) getValidSocks5Connection() (net.Conn, error) {
 		if err != nil {
 			closeConn(cc)
 			fmt.Printf("[!] cannot connect to %v\n", key)
+			// 将该代理设置为不可用
+			markUnavail()
+			continue
 		}
 		fmt.Printf("[*] use %v\n", key)
 		// write header for remote socks5 server
 		err = c.preProcessor.UpstreamPreProcess(cc)
 		if err != nil {
 			closeConn(cc)
-			if errors.Is(err, ErrNotSocks5Proxy) {
-				// 将该代理设置为不可用
-				markUnavail()
-				fmt.Println(err)
-				continue
-			}
-			fmt.Printf("socks handshake with downstream failed: %v\n", err)
+			fmt.Printf("socks handshake with upstream failed: %v\n", err)
+			// 将该代理设置为不可用
+			markUnavail()
 			continue
 		}
 		break
@@ -260,11 +257,11 @@ func closeConn(conn net.Conn) (err error) {
 
 func transport(rw1, rw2 io.ReadWriter) error {
 	g, _ := errgroup.WithContext(context.Background())
-	g.Go(func() error{
+	g.Go(func() error {
 		return copyBuffer(rw1, rw2)
 	})
 
-	g.Go(func() error{
+	g.Go(func() error {
 		return copyBuffer(rw2, rw1)
 	})
 	var err error
