@@ -1,6 +1,7 @@
 package ddns
 
 import (
+	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"net/http"
@@ -32,13 +33,19 @@ func (s *DDNS) getClient() (*alidns20150109.Client, error) {
 
 // 获取公网 IP
 func (s *DDNS) getIP() (string, error) {
-	resp, err := http.Get("http://ip.42.pl/raw")
+	resp, err := http.Get("http://ipinfo.io")
 	if err != nil {
 		return "", err
 	}
 	defer resp.Body.Close()
 	content, _ := ioutil.ReadAll(resp.Body)
-	publicIP := string(content)
+
+	var ipInfo map[string]interface{}
+	err = json.Unmarshal(content, &ipInfo)
+	if err != nil {
+		return "", err
+	}
+	publicIP := ipInfo["ip"].(string)
 	return publicIP, nil
 }
 
